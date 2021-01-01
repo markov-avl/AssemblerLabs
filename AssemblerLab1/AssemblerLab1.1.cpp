@@ -10,8 +10,7 @@
 */
 
 
-int main()
-{
+int main() {
     char a;
 
     _asm
