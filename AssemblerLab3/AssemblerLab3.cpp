@@ -6,9 +6,11 @@ int main()
     char line[N] = "One44445 4445  44 wwwww 000000000000";
     char outline[N]{};
     int lineLength = strlen(line);
-    int index;
+    int lineIndex, outlineIndex;
     
     _asm {
+        lea edim outline
+        mov outlineIndex, edi
         lea edi, line
         mov esi, edi
         mov ecx, lineLength
@@ -48,7 +50,7 @@ int main()
             CHECK_LETTERS:
                 std
                 // надо сохранить куда-либо настоящий индекс edi
-                mov index, edi
+                mov lineIndex, edi
                 // надо сохранить куда-либо настоящей счетчик циклов ecx
                 mov ebx, ecx
                 // ставим каретку на последний символ слова
