@@ -107,4 +107,6 @@ int main() {
     }
 
     std::cout << outline;
+    
+    return 0;
 }
