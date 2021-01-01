@@ -10,13 +10,11 @@
 */
 
 
-int main()
-{
+int main() {
     unsigned char a;
     unsigned short b;
 
-    _asm
-    {
+    _asm {
         // пусть второй операнд - исходное двоичное число
         mov a, 11100010b
 

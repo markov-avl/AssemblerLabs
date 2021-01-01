@@ -1,7 +1,16 @@
 ﻿#include <iostream>
 
-int main()
-{
+
+/*
+* ВАРИАНТ 7
+* 
+* Вычислить y, имея:
+* y = y1 + y2;
+* y1 = 4 - x, если |x| < 3, иначе a + x;
+* y2 = 2, если x четное, иначе a + 2.
+*/
+
+int main() {
     int a, x, y;
 
     std::cout << "Input x: ";
@@ -9,8 +18,7 @@ int main()
     std::cout << "Input a: ";
     std::cin >> a;
 
-    _asm
-    {
+    _asm {
         // обнуляем y
         mov y, 0
 
@@ -32,9 +40,9 @@ int main()
             add y, ecx
             jmp COMPARE_2
             
-            LOWER:
-                add y, 4
-                sub y, ecx
+        LOWER:
+            add y, 4
+            sub y, ecx
 
         COMPARE_2:
             test ecx, 1

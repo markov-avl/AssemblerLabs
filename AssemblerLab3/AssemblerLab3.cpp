@@ -1,19 +1,28 @@
 ﻿#include <iostream>
 
-int main()
-{
+
+/*
+* ВАРИАНТ 7
+*
+* Найти слова, в которых больше трех повторяющихся символов
+*/
+
+
+int main() {
     const int N = 64;
-    char line[N] = "One44445 4445  44 wwwww 000000000000";
+    char line[N] = "aaaa 1 2 3 bbb cc dddde ffffggg";
     char outline[N]{};
     int lineLength = strlen(line);
     int lineIndex, outlineIndex;
     
     _asm {
-        lea edim outline
-        mov outlineIndex, edi
-        lea edi, line
-        mov esi, edi
-        mov ecx, lineLength
+        INIT:
+            // уже получаем адрес выходной строки, т.к. он может пригодиться
+            lea edi, outline
+            mov outlineIndex, edi
+            lea edi, line
+            mov esi, edi
+            mov ecx, lineLength
 
         MAIN_LOOP:
             // ищем знак пробела в строке, двигаясь слева направо
@@ -26,61 +35,72 @@ int main()
             mov edx, edi
             sub edx, esi
             mov esi, edi
-            // нам не нужно уменьшать длину на единицу, если это конец строки
+            // нам не нужно уменьшать длину слова на единицу, если это конец строки
             cmp ecx, 0
             je PASS_DEC_WORD_LENGTH
             dec edx
 
-            PASS_DEC_WORD_LENGTH:
-                // сначала проверяем, есть ли в слове вообще более 3 букв
-                cmp edx, 3
-                jnle CHECK_LETTERS
-                jmp CHECK_MAIN_LOOP
+        PASS_DEC_WORD_LENGTH:
+            // сначала проверяем, есть ли в слове вообще более 3 букв
+            cmp edx, 3
+            jnle CHECK_LETTERS
+            jmp CHECK_MAIN_LOOP
 
-            // будем проверять слово так:
-            // 1) сохраняем в ecx длину слова, то есть edx;
-            // 2) ставим каретку на конец слова
-            // 3) начинаем двигаться справа налево, пытаясь найти букву,
-            //    на которой стояла каретка;
-            // 4) если нам удается найти ещё 3 таких символа, не обнулив ecx, значит, это слово нам подходит,
-            //    и мы копируем его из строки;
-            // 5) иначе возвращаем каретку на место, на котором стояла раньше, но отодвигаем ее налево на 1,
-            //    а также в ecx кладем edx - 1;
-            // 6) если edx будет больше 3, начинаем выполнять алгоритм заново с пункта 3, иначе заканчиваем.
-            CHECK_LETTERS:
-                std
-                // надо сохранить куда-либо настоящий индекс edi
-                mov lineIndex, edi
-                // надо сохранить куда-либо настоящей счетчик циклов ecx
-                mov ebx, ecx
-                // ставим каретку на последний символ слова
-                dec esi
-                cmp ecx, 0
-                je CHECK_LETTERS_LOOP
-                dec esi
+        CHECK_LETTERS:
+            // теперь будем двигаться справа налево
+            std
+            // надо сохранить куда-либо настоящий edi и ecx
+            mov lineIndex, edi
+            mov ebx, ecx
+            // ставим каретку на последний символ слова
+            dec esi
+            cmp ecx, 0
+            je CHECK_LETTERS_LOOP
+            dec esi
                 
-                CHECK_LETTERS_LOOP:
-                    // загружаем максимальное количество итераций
-                    mov ecx, edx
-                    // загружаем в al символ каретки
-                    lodsb
-                    mov edi, esi
-                    repne scasb
-                    repne scasb
-                    repne scasb
-                    cmp ecx, 0
-                    jne ADD_WORD
-                    dec edx
-                    cmp edx, 3
-                    je QUIT_CHECK_LETTERS_LOOP
-                    jmp CHECK_LETTERS_LOOP
+        CHECK_LETTERS_LOOP:
+            // загружаем максимальное количество итераций
+            mov ecx, edx
+            // загружаем в al символ каретки
+            lodsb
+            // если ecx не обнулится после трех поисков символа, тогда это слово нас устраивает
+            mov edi, esi
+            repne scasb
+            repne scasb
+            repne scasb
+            cmp ecx, 0
+            jne ADD_WORD
+            dec edx
+            cmp edx, 3
+            je QUIT_CHECK_LETTERS_LOOP
+            jmp CHECK_LETTERS_LOOP
 
-                ADD_WORD:
+        // посимвольно переносим символы из исходной строки в выходную
+        ADD_WORD:
+            cld
+            sub esi, edx
+            add esi, 2
+            mov edi, outlineIndex
+            mov ecx, lineIndex
+            dec ecx
+            sub ecx, esi
+            rep movsb
+            cmp ebx, 0
+            // если слово является последним в строке, то уже точно не нужно вставлять пробел
+            je SKIP_ADD_SPACE
+            mov al, ' '
+            stosb
 
-            QUIT_CHECK_LETTERS_LOOP:
-                mov edi, index
-                mov ecx, ebx
+        SKIP_ADD_SPACE:
+            mov outlineIndex, edi
 
+        // возвращаемся к исходным значениям, будто мы их и не меняли
+        QUIT_CHECK_LETTERS_LOOP:
+            mov edi, lineIndex
+            mov esi, edi
+            mov ecx, ebx
+
+        // проверка, не дошли ли мы до конца строки, и если дошли - то задача выполнена
         CHECK_MAIN_LOOP:
             cmp ecx, 0
             jne MAIN_LOOP
