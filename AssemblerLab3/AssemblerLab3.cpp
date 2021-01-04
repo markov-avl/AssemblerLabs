@@ -10,10 +10,14 @@
 
 int main() {
     const int N = 64;
-    char line[N] = "aaaa 1 2 3 bbb cc dddde ffffggg";
+    char line[N]{};
     char outline[N]{};
+    int lineIndex;
+    int outlineIndex;
+    
+    std::cout << "Input string: ";
+    std::cin.getline(line, N);
     int lineLength = strlen(line);
-    int lineIndex, outlineIndex;
     
     _asm {
         INIT:
@@ -82,7 +86,11 @@ int main() {
             add esi, 2
             mov edi, outlineIndex
             mov ecx, lineIndex
+            cmp ebx, 0
+            je PASS_DEC_CYCLES
             dec ecx
+
+        PASS_DEC_CYCLES:
             sub ecx, esi
             rep movsb
             cmp ebx, 0
@@ -106,7 +114,7 @@ int main() {
             jne MAIN_LOOP
     }
 
-    std::cout << outline;
+    std::cout << "Found words: " << outline << std::endl;
     
     return 0;
 }

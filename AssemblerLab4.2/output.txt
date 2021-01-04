@@ -1,0 +1,36 @@
+Type: inline assembler
+The number of cycles: 15
+The number of array elements: 12000
+
+Sorted in 0.515 sec
+Array sorted correctly
+Sorted in 0.604 sec
+Array sorted correctly
+Sorted in 0.477 sec
+Array sorted correctly
+Sorted in 0.457 sec
+Array sorted correctly
+Sorted in 0.466 sec
+Array sorted correctly
+Sorted in 0.47 sec
+Array sorted correctly
+Sorted in 0.464 sec
+Array sorted correctly
+Sorted in 0.463 sec
+Array sorted correctly
+Sorted in 0.46 sec
+Array sorted correctly
+Sorted in 0.469 sec
+Array sorted correctly
+Sorted in 0.46 sec
+Array sorted correctly
+Sorted in 0.481 sec
+Array sorted correctly
+Sorted in 0.457 sec
+Array sorted correctly
+Sorted in 0.451 sec
+Array sorted correctly
+Sorted in 0.447 sec
+Array sorted correctly
+
+Fastest sorting time: 0.447 sec

@@ -1,0 +1,36 @@
+Type: C++ code
+The number of cycles: 15
+The number of array elements: 12000
+
+Sorted in 0.343 sec
+Array sorted correctly
+Sorted in 0.316 sec
+Array sorted correctly
+Sorted in 0.317 sec
+Array sorted correctly
+Sorted in 0.363 sec
+Array sorted correctly
+Sorted in 0.296 sec
+Array sorted correctly
+Sorted in 0.302 sec
+Array sorted correctly
+Sorted in 0.287 sec
+Array sorted correctly
+Sorted in 0.291 sec
+Array sorted correctly
+Sorted in 0.298 sec
+Array sorted correctly
+Sorted in 0.289 sec
+Array sorted correctly
+Sorted in 0.292 sec
+Array sorted correctly
+Sorted in 0.284 sec
+Array sorted correctly
+Sorted in 0.289 sec
+Array sorted correctly
+Sorted in 0.29 sec
+Array sorted correctly
+Sorted in 0.308 sec
+Array sorted correctly
+
+Fastest sorting time: 0.284 sec
