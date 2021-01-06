@@ -19,7 +19,7 @@ global Start
 ; инициализация данных
 section .data
 
-	Buffer   	         db  BUFFER_SIZE dup (0xD)            ; буффер ввода, заполненный нуль-терминаторами
+	Buffer   	     db  BUFFER_SIZE dup (0xD)            ; буффер ввода, заполненный нуль-терминаторами
 	MessageToInput       db  "Input message:", 0xA, 0xD       ; сообщение, побуждающее к вводу
 	MessageToInputLength EQU $ - MessageToInput               ; длина сообщения MessageToInput
 	MessageNoColor       db  "Not colored message:", 0xA, 0xD ; сообщение, обозначающее, что далее будет выводиться одноцветная строка
