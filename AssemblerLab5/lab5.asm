@@ -3,7 +3,8 @@ NULL              EQU 0   ; просто 0 для удобства
 BUFFER_SIZE       EQU 128 ; максимальная длина входной строки
 STD_INPUT_HANDLE  EQU -10 ; дескриптор ввода
 STD_OUTPUT_HANDLE EQU -11 ; дескриптор вывода
-WHITE_COLOR       EQU 0xF ; значение для белого цвета (стандартный)
+WHITE_COLOR       EQU 0xF ; значение для серого цвета (стандартный)
+GRAY_COLOR        EQU 0x7 ; значение для белого цвета
 BLACK_COLOR       EQU 0x0 ; значение для черного цвета (который не будет использоваться)
 
 ; импорт необходимых функций из Win32API
@@ -154,7 +155,7 @@ section .text
 		push    STD_OUTPUT_HANDLE
 		call    _GetStdHandle@4
 		mov     dword [StandardHandle], eax
-		push    WHITE_COLOR
+		push    GRAY_COLOR
 		push    eax
 		call    _SetConsoleTextAttribute@8
 
