@@ -54,6 +54,7 @@ int main() {
 	start = __rdtsc();
 	_asm {
 	INITIALISATION:
+		finit                                             // инициализация сопроцессора
 		mov    ecx, N
 		xor    ebx, ebx                                   // пусть ebx будет номером k-го элемента матрицы
 
@@ -64,7 +65,6 @@ int main() {
 		movups [m1SSE + 4 * ebx], xmm0                    // вставляем обратно строку в матрицу, но уже уменьшенную в k раз
 		
 	ROW_COMPOSITING:
-		finit                                             // инициализация сопроцессора
 		xor edx, edx                                      // пусть edx будет номером j-го столбца
 	
 	ELEMENT_COMPOSITING:
@@ -90,7 +90,6 @@ int main() {
 		faddp  st(1), st(0)
 		faddp  st(1), st(0)
 		faddp  st(1), st(0)
-		
 		fstp   [compositionSSE + 4 * ebx]                 // сохраняем сумму в k-ый элемент матрицы-произведение
 
 		// повторяем всё это для каждого элемента строки
@@ -99,9 +98,13 @@ int main() {
 		cmp    edx, N
 		jne    ELEMENT_COMPOSITING
 
-		loop   DECREASE_M1
+		dec    ecx
+		cmp    ecx, N
+		jne    DECREASE_M1
 	}
 	end = __rdtsc();
+	
+	std::cout << end - start << " ticks" << std::endl;
 	std::cout << m1SSE << std::endl;
 	std::cout << compositionSSE << std::endl;
 
