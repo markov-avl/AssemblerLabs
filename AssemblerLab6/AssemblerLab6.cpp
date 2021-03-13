@@ -17,7 +17,7 @@ typedef Vector QuadraticMatrix[N];
 
 
 std::ostream& operator<<(std::ostream& out, const QuadraticMatrix& matrix) {
-	out.precision(7);
+	out.precision(4);
 	for (int i = 0; i < N; ++i) {
 		for (int j = 0; j < N; ++j) {
 			out << matrix[i][j] << '\t';
@@ -55,8 +55,8 @@ int main() {
 	QuadraticMatrix resultSSE1;
 	QuadraticMatrix resultSSE2;
 	QuadraticMatrix	resultSSE3;
-	Vector vector;
 	Vector column;
+	Vector vector;
 	float m;
 
 	srand(time(nullptr));
@@ -64,11 +64,7 @@ int main() {
 	generateQuadraticMatrix(m2);
 
 	// НЕ ЗАБЫТЬ ДОБАВИТЬ ВВОД ПОЛЬЗОВАТЕЛЯ
-	// НЕ ЗАБЫТЬ ПЕРЕНЕСТИ ЗАПОЛНЕНИЕ ВЕКТОРА В SSE АССЕМБЛЕРНУЮ ВСТАВКУ
-	m = 2;
-	for (int i = 0; i < N; ++i) {
-		vector[i] = m;
-	}
+	m = 3;
 	
 	std::cout << "M1:" << std::endl << m1 << std::endl;
 	std::cout << "M2:" << std::endl << m2 << std::endl;
@@ -82,9 +78,71 @@ int main() {
 	{
 		start = __rdtsc();
 		_asm {
-		INITIALIZATION:
+			rdtsc
 			finit                                             // инициализация сопроцессора
 
+		// получение матрицы result1
+			mov    ecx, N * N
+			xor    eax, eax                                   // пусть eax будет индексом k-х элементов матриц
+
+		REDUCING_NO_SSE:
+			fld    [m1 + 4 * eax]                             // кладем в стек k-й элемент M1
+			fld    m                                          // кладем в стек m
+			fdivp  st(1), st(0)                               // делим k-й элемент m1 на m
+			fstp   [result1 + 4 * eax]                        // выталкиваем полученное частное в k-й элемент result1
+			inc    eax
+			loop   REDUCING_NO_SSE
+
+		// получение матрицы result2
+			mov    ecx, N
+			xor    ebx, ebx                                   // пусть ebx будет номером i-й строки M1
+			xor    eax, eax                                   // пусть eax будет индексом элемента k в M1
+
+		COMPOSITING_NO_SSE:
+			xor    edx, edx                                   // пусть edx будет номером j-го столбца M2
+
+		GETTING_ELEMENT_NO_SSE:
+			// умножаем i-ю строку и j-й столбец поэлементно
+			fld    [m1 + 4 * ebx]
+			fld    [m2 + 4 * edx]
+			fmulp  st(1), st(0)
+			fld    [m1 + 4 * ebx + 4]
+			fld    [m2 + 4 * edx + 16]
+			fmulp  st(1), st(0)
+			fld    [m1 + 4 * ebx + 8]
+			fld    [m2 + 4 * edx + 32]
+			fmulp  st(1), st(0)
+			fld    [m1 + 4 * ebx + 12]
+			fld    [m2 + 4 * edx + 48]
+			fmulp  st(1), st(0)
+
+			// сохраняем сумму 4-х последних элементов в стеке
+			faddp  st(1), st(0)
+			faddp  st(1), st(0)
+			faddp  st(1), st(0)
+			fstp   [result2 + 4 * eax]                        // сохраняем сумму в k-й элемент result2
+
+			// повторяем всё это для каждого элемента строки
+			inc    eax
+			inc    edx
+			cmp    edx, N
+			jne    GETTING_ELEMENT_NO_SSE
+
+			// повторяем всё это для каждой строки
+			add    ebx, 4
+			loop   COMPOSITING_NO_SSE
+
+		// получение матрицы result3
+			mov    ecx, N * N
+			xor    eax, eax                                   // пусть eax будет индексом k-х элементов матриц
+
+		ADDING_NO_SSE:
+			fld    [m1 + 4 * eax]                             // кладем в стек k-й элемент M1
+			fld    [result2 + 4 * eax]                        // кладем в стек k-й элемент result2
+			faddp  st(1), st(0)                               // складываем k-е элементы M1 и result2
+			fstp   [result3 + 4 * eax]                        // выталкиваем полученную сумму в k-й элемент result3
+			inc    eax
+			loop   ADDING_NO_SSE
 		}
 		end = __rdtsc();
 
@@ -102,23 +160,41 @@ int main() {
 	{
 		start = __rdtsc();
 		_asm {
-		INITIALIZATION:
+			rdtsc
 			finit                                             // инициализация сопроцессора
+
+		// получение матрицы resultSSE1
 			mov    ecx, N
-			xor    ebx, ebx                                   // пусть ebx будет номером k-го элемента матрицы
+			xor    eax, eax                                   // пусть eax будет индексом 1-го элемента в i-й строке M1
 
-		REDUCING:
-			movups xmm0, [m1 + 4 * ebx]                       // копируем в xmm0 i-ю строку матрицы m1
-			movups xmm1, xmm0                                 // копируем в xmm1 i-ю строку матрицы m1
-			movups xmm2, [vector]                             // копируем в xmm1 вектор, состоящий из N заданных чисел m
-			divps  xmm1, xmm2                                 // уменьшаем в m раз i-ю строку матрицы
-			movups [resultSSE1 + 4 * ebx], xmm1               // вставляем уже уменьшенную в m раз строку в матрицу resultSSE1
+			// создание вектора из N заданных чисел m
+			fld    m
+			fld    m
+			fld    m
+			fld    m
+			fstp   [vector]
+			fstp   [vector + 4]
+			fstp   [vector + 8]
+			fstp   [vector + 12]
+		
+		REDUCING_SSE:
+			movups xmm0, [m1 + 4 * eax]                       // копируем в xmm0 i-ю строку матрицы M1
+			movups xmm1, [vector]                             // копируем в xmm1 вектор, состоящий из N заданных чисел m
+			divps  xmm0, xmm1                                 // уменьшаем в m раз i-ю строку M1
+			movups [resultSSE1 + 4 * eax], xmm0               // вставляем уже уменьшенную в m раз строку в resultSSE1
+			add    eax, 4
+			loop   REDUCING_SSE
 
-		ROW_COMPOSITION:
-			xor    edx, edx                                   // пусть edx будет номером j-го столбца
-
-		ELEMENT_COMPOSITION:
-			// сохраняем в column j-й столбец матрицы m2SSE
+		// получение матрицы resultSSE2
+			mov    ecx, N
+			xor    eax, eax                                   // пусть eax будет индексом элемента k в M1
+			xor    ebx, ebx                                   // пусть ebx будет индексом 1-го элемента в i-й строке M1
+		
+		COMPOSITING_SSE:
+			xor    edx, edx                                   // пусть edx будет номером j-го столбца M2
+		
+		GETTING_ELEMENT_SSE:
+			// сохраняем в column j-й столбец матрицы m2
 			fld    [m2 + 4 * edx + 48]
 			fld    [m2 + 4 * edx + 32]
 			fld    [m2 + 4 * edx + 16]
@@ -128,10 +204,10 @@ int main() {
 			fstp   [column + 8]
 			fstp   [column + 12]
 
-			movups xmm1, xmm0                                 // создаем копию i-й строки в xmm1
-			movups xmm2, [column]                             // копируем в xmm2 j-й столбец
-			mulps  xmm1, xmm2                                 // перемножаем i-ю строку с j-м столбцом поэлементно
-			movups [column], xmm1                             // переносим полученный вектор в column
+			movups xmm0, [m1 + 4 * ebx]                       // копируем в xmm0 i-ю строку матрицы M1
+			movups xmm1, [column]                             // копируем в xmm2 j-й столбец
+			mulps  xmm0, xmm1                                 // перемножаем i-ю строку с j-м столбцом поэлементно
+			movups [column], xmm0                             // переносим полученный вектор в column
 
 			// сохраняем сумму всех элементов вектора
 			fld    [column]
@@ -141,32 +217,31 @@ int main() {
 			faddp  st(1), st(0)
 			faddp  st(1), st(0)
 			faddp  st(1), st(0)
-			fstp   [resultSSE2 + 4 * ebx]                     // сохраняем сумму в k-ый элемент матрицы-произведение resultSSE2
+			fstp   [resultSSE2 + 4 * eax]                     // сохраняем сумму в k-й элемент resultSSE2
 
 			// повторяем всё это для каждого элемента строки
-			inc    ebx
+			inc    eax
 			inc    edx
 			cmp    edx, N
-			jne    ELEMENT_COMPOSITION
-
-			// повторяем всё это для каждой строки
-			dec    ecx
-			cmp    ecx, 0
-			jne    REDUCING
-
-		ADDITION:
-			xor    ebx, ebx                                   // пусть ebx будет номером i-х строк матриц
-
-		ROW_ADDITION:
-			movups xmm0, [m1 + 4 * ebx]                       // сохраняем i-ю строку матрицы M1 в xmm0
-			movups xmm1, [resultSSE2 + 4 * ebx]               // сохраняем i-ю строку матрицы-произведение resultSSE2 в xmm1
-			addps  xmm1, xmm0                                 // суммируем строки и сохраняем результат в xmm1
-			movups [resultSSE3 + 4 * ebx], xmm1               // сохраняем xmm1 в i-ю строку матрицы resultSSE3
+			jne    GETTING_ELEMENT_SSE
 
 			// повторяем всё это для каждой строки
 			add    ebx, 4
-			cmp    ebx, N* N
-			jne    ROW_ADDITION
+			loop   COMPOSITING_SSE
+
+		// получение матрицы resultSSE3
+			mov    ecx, N
+			xor    eax, eax                                   // пусть eax будет номером i-х строк матриц
+
+		ADDING_SSE:
+			movups xmm0, [m1 + 4 * eax]                       // сохраняем i-ю строку M1 в xmm0
+			movups xmm1, [resultSSE2 + 4 * eax]               // сохраняем i-ю строку resultSSE2 в xmm1
+			addps  xmm1, xmm0                                 // суммируем строки и сохраняем результат в xmm1
+			movups [resultSSE3 + 4 * eax], xmm1               // сохраняем xmm1 в i-ю строку матрицы resultSSE3
+
+			// повторяем всё это для каждой строки
+			add    eax, 4
+			loop   ADDING_SSE
 		}
 		end = __rdtsc();
 
