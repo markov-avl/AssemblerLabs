@@ -100,8 +100,8 @@ int main() {
 
 		// получение матрицы result2
 			mov    ecx, N
-			xor    ebx, ebx                                   // пусть ebx будет номером i-й строки M1
 			xor    eax, eax                                   // пусть eax будет индексом элемента k в M1
+			xor    ebx, ebx                                   // пусть ebx будет номером i-й строки M1
 
 		COMPOSITING_NO_SSE:
 			xor    edx, edx                                   // пусть edx будет номером j-го столбца M2
@@ -209,7 +209,7 @@ int main() {
 			fstp   [column + 12]
 
 			movups xmm0, [m1 + 4 * ebx]                       // копируем в xmm0 i-ю строку матрицы M1
-			movups xmm1, [column]                             // копируем в xmm2 j-й столбец
+			movups xmm1, [column]                             // копируем в xmm1 j-й столбец
 			mulps  xmm0, xmm1                                 // перемножаем i-ю строку с j-м столбцом поэлементно
 			movups [column], xmm0                             // переносим полученный вектор в column
 
