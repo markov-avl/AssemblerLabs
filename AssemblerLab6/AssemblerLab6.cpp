@@ -69,10 +69,11 @@ int main() {
 	srand(time(nullptr));
 	generateQuadraticMatrix(m1);
 	generateQuadraticMatrix(m2);
-	m = getInputNumber();
 	
 	std::cout << "M1:" << std::endl << m1 << std::endl;
 	std::cout << "M2:" << std::endl << m2 << std::endl;
+
+	m = getInputNumber();
 
 	/*
 	* В результате NO SSE ассемблерной вставки будет:
@@ -83,7 +84,6 @@ int main() {
 	{
 		start = __rdtsc();
 		_asm {
-			rdtsc
 			finit                                             // инициализация сопроцессора
 
 		// получение матрицы result1
@@ -152,7 +152,7 @@ int main() {
 		end = __rdtsc();
 
 		// результаты теста NO SSE
-		std::cout << std::endl;
+		std::cout << std::endl << std::endl;
 		printResults(false, result1, result2, result3, m, end - start);
 	}
 
@@ -165,7 +165,6 @@ int main() {
 	{
 		start = __rdtsc();
 		_asm {
-			rdtsc
 			finit                                             // инициализация сопроцессора
 
 		// получение вектора из N заданных чисел m
