@@ -35,6 +35,13 @@ void generateQuadraticMatrix(QuadraticMatrix& matrix) {
 	}
 }
 
+float getInputNumber() {
+	float m;
+	std::cout << "Input number: ";
+	std::cin >> m;
+	return m;
+}
+
 void printResults(bool isSSE, QuadraticMatrix& result1, QuadraticMatrix& result2, QuadraticMatrix& result3, float m, __int64 ticks) {
 	std::cout << (isSSE ? "SSE TEST RESULTS:" : "NO SSE TEST RESULTS:") << std::endl << std::endl;
 	std::cout << "M1 / " << m << ":" << std::endl << result1 << std::endl;
@@ -62,9 +69,7 @@ int main() {
 	srand(time(nullptr));
 	generateQuadraticMatrix(m1);
 	generateQuadraticMatrix(m2);
-
-	// НЕ ЗАБЫТЬ ДОБАВИТЬ ВВОД ПОЛЬЗОВАТЕЛЯ
-	m = 3;
+	m = getInputNumber();
 	
 	std::cout << "M1:" << std::endl << m1 << std::endl;
 	std::cout << "M2:" << std::endl << m2 << std::endl;
