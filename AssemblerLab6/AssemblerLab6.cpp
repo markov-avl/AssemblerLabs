@@ -168,20 +168,20 @@ int main() {
 			rdtsc
 			finit                                             // инициализация сопроцессора
 
+		// получение вектора из N заданных чисел m
+			mov    ecx, N
+			xor    eax, eax
+
+		MAKING_VECTOR:
+			fld    m
+			fstp   [vector + eax]
+			add    eax, 4
+			loop   MAKING_VECTOR
+		
 		// получение матрицы resultSSE1
 			mov    ecx, N
 			xor    eax, eax                                   // пусть eax будет индексом 1-го элемента в i-й строке M1
 
-			// создание вектора из N заданных чисел m
-			fld    m
-			fld    m
-			fld    m
-			fld    m
-			fstp   [vector]
-			fstp   [vector + 4]
-			fstp   [vector + 8]
-			fstp   [vector + 12]
-		
 		REDUCING_SSE:
 			movups xmm0, [m1 + 4 * eax]                       // копируем в xmm0 i-ю строку матрицы M1
 			movups xmm1, [vector]                             // копируем в xmm1 вектор, состоящий из N заданных чисел m
