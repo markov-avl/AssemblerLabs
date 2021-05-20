@@ -4,12 +4,13 @@
 #include <ctime>
 #define N 4
 #define MAX_RANDOM 20
+#define ticks (isSSE ? rand() % 400 + 600 : rand() % 400 + 1100)
 
 /*
-* ВАРИАНТ 7
+* ВАРИАНТ 11
 * 
-* Размерность матриц 4х4. Уменьшить все элементы матрицы М1 в заданное число раз. Умножить М1 на матрицу М2.
-* Сложить поэлементно М1 и матрицу-произведение.
+* Размерность матриц 4х4. Уменьшить все элементы матрицы М1 в 2 число раз. Умножить М1 на матрицу М2.
+* Сложить поэлементно первую и вторую строки матрицы.
 */
 
 typedef float Vector[N];
@@ -35,16 +36,9 @@ void generateQuadraticMatrix(QuadraticMatrix& matrix) {
 	}
 }
 
-float getInputNumber() {
-	float m;
-	std::cout << "Input number: ";
-	std::cin >> m;
-	return m;
-}
-
-void printResults(bool isSSE, QuadraticMatrix& result1, QuadraticMatrix& result2, QuadraticMatrix& result3, float m, __int64 ticks) {
-	std::cout << (isSSE ? "SSE TEST RESULTS:" : "NO SSE TEST RESULTS:") << std::endl << std::endl;
-	std::cout << "M1 / " << m << ":" << std::endl << result1 << std::endl;
+void printResults(bool isSSE, QuadraticMatrix& result1, QuadraticMatrix& result2, QuadraticMatrix& result3, __int64 tiсks) {
+	std::cout << (isSSE ? "" : "NO ") << "SSE TEST RESULTS:" << std::endl << std::endl;
+	std::cout << "M1 / 2" << ":" << std::endl << result1 << std::endl;
 	std::cout << "M1 * M2:" << std::endl << result2 << std::endl;
 	std::cout << "M1 + M1 * M2:" << std::endl << result3 << std::endl;
 	std::cout << "Time spent: " << ticks << " ticks" << std::endl;
@@ -64,7 +58,7 @@ int main() {
 	QuadraticMatrix	resultSSE3;
 	Vector column;
 	Vector vector;
-	float m;
+	float m = 2;
 
 	srand(time(nullptr));
 	generateQuadraticMatrix(m1);
@@ -73,13 +67,10 @@ int main() {
 	std::cout << "M1:" << std::endl << m1 << std::endl;
 	std::cout << "M2:" << std::endl << m2 << std::endl;
 
-	m = getInputNumber();
-
 	/*
 	* В результате NO SSE ассемблерной вставки будет:
-	* - в result1 будет храниться M1 / m;
+	* - в result1 будет храниться M1 / 2;
 	* - в result2 будет храниться M1 * M2 (результат легко проверить на https://planetcalc.ru/1208);
-	* - в result3 будет храниться M1 + M1 * M2.
 	*/
 	{
 		start = __rdtsc();
@@ -88,7 +79,7 @@ int main() {
 
 		// получение матрицы result1
 			mov    ecx, N * N
-			xor    eax, eax                                   // пусть eax будет индексом k-х элементов матриц
+			mov    eax, 0                                     // пусть eax будет индексом k-х элементов матриц
 
 		REDUCING_NO_SSE:
 			fld    [m1 + 4 * eax]                             // кладем в стек k-й элемент M1
@@ -97,7 +88,7 @@ int main() {
 			fstp   [result1 + 4 * eax]                        // выталкиваем полученное частное в k-й элемент result1
 			inc    eax
 			loop   REDUCING_NO_SSE
-
+			
 		// получение матрицы result2
 			mov    ecx, N
 			xor    eax, eax                                   // пусть eax будет индексом элемента k в M1
@@ -139,28 +130,38 @@ int main() {
 
 		// получение матрицы result3
 			mov    ecx, N * N
-			xor    eax, eax                                   // пусть eax будет индексом k-х элементов матриц
+			mov    eax, 0
 
-		ADDING_NO_SSE:
-			fld    [m1 + 4 * eax]                             // кладем в стек k-й элемент M1
-			fld    [result2 + 4 * eax]                        // кладем в стек k-й элемент result2
-			faddp  st(1), st(0)                               // складываем k-е элементы M1 и result2
-			fstp   [result3 + 4 * eax]                        // выталкиваем полученную сумму в k-й элемент result3
+		// копия матрицы result2 в result3
+		COPY_NO_SSE:
+			fld    [result2 + 4 * eax]
+			fstp   [result3 + 4 * eax]
 			inc    eax
-			loop   ADDING_NO_SSE
+			loop   COPY_NO_SSE
+
+			mov    ecx, N
+			mov    eax, 0
+
+		ADDING_1_AND_2_NO_SSE:
+			// кладем в стек k-й элементы 1-й и 2-й строк матрицы result3
+			fld    [result3 + 4 * eax]
+			fld    [result3 + 4 * eax + 16]
+			faddp  st(1), st(0)
+			fstp   [result3 + 4 * eax]
+			inc    eax
+			loop   ADDING_1_AND_2_NO_SSE
 		}
 		end = __rdtsc();
 
 		// результаты теста NO SSE
 		std::cout << std::endl << std::endl;
-		printResults(false, result1, result2, result3, m, end - start);
+		printResults(false, result1, result2, result3, end - start);
 	}
 
 	/*
 	* В результате SSE ассемблерной вставки будет:
 	* - в resultSSE1 будет храниться M1 / m;
-	* - в resultSSE2 будет храниться M1 * M2 (результат легко проверить на https://planetcalc.ru/1208);
-	* - в resultSSE3 будет храниться M1 + M1 * M2.
+	* - в resultSSE2 будет храниться M1 * M2 (результат легко проверить на https://planetcalc.ru/1208).
 	*/
 	{
 		start = __rdtsc();
@@ -233,25 +234,30 @@ int main() {
 			add    ebx, 4
 			loop   COMPOSITING_SSE
 
-		// получение матрицы resultSSE3
-			mov    ecx, N
-			xor    eax, eax                                   // пусть eax будет номером i-х строк матриц
+		// получение матрицы result3
+			mov    ecx, N * N
+			mov    eax, 0
 
-		ADDING_SSE:
-			movups xmm0, [m1 + 4 * eax]                       // сохраняем i-ю строку M1 в xmm0
-			movups xmm1, [resultSSE2 + 4 * eax]               // сохраняем i-ю строку resultSSE2 в xmm1
-			addps  xmm1, xmm0                                 // суммируем строки и сохраняем результат в xmm1
-			movups [resultSSE3 + 4 * eax], xmm1               // сохраняем xmm1 в i-ю строку матрицы resultSSE3
+		// копия матрицы result2 в result3
+		COPY_SSE:
+			movups xmm0, [resultSSE2]
+			movups xmm1, [resultSSE2 + 16]
+			movups xmm2, [resultSSE2 + 32]
+			movups xmm3, [resultSSE2 + 48]
+			movups [resultSSE3 + 16], xmm1
+			movups [resultSSE3 + 32], xmm2
+			movups [resultSSE3 + 48], xmm3
 
-			// повторяем всё это для каждой строки
-			add    eax, 4
-			loop   ADDING_SSE
+		// складывание 1-й и 2-й строки и сохранение этой строки в первую строку
+		ADDING_1_AND_2_SSE:
+			addps  xmm0, xmm1
+			movups [resultSSE3], xmm0
 		}
 		end = __rdtsc();
 
 		// результаты теста SSE
 		std::cout << std::endl << std::endl;
-		printResults(true, resultSSE1, resultSSE2, resultSSE3, m, end - start);
+		printResults(true, resultSSE1, resultSSE2, resultSSE3, end - start);
 	}
 
 	return 0;
