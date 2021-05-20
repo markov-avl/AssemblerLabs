@@ -21,10 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{a1370b26-068f-4447-afb4-997a8bfabfd8}</ProjectGuid>
-    <RootNamespace>AssemblerLab7</RootNamespace>
+    <ProjectGuid>{61abad47-09f4-4047-a9c9-be00844c861c}</ProjectGuid>
+    <RootNamespace>AssemblerLab72</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>AssemblerLab7.1</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -145,11 +144,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AssemblerLab7.1.cpp" />
+    <ClCompile Include="AssemblerLab7.2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src.asm">
       <FileType>Document</FileType>
+      <AssembledCodeListingFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName).lst</AssembledCodeListingFile>
     </MASM>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

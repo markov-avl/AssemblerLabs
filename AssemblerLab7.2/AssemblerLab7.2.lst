@@ -1,0 +1,178 @@
+Microsoft (R) Macro Assembler Version 14.28.29336.0	    05/21/21 03:07:13
+src.asm							     Page 1 - 1
+
+
+				PUBLIC masm
+
+				.686
+				.model flat, C
+				option casemap : none
+
+ = 00000080			BUFFER_SIZE        = 128
+ =-0000000A			STD_INPUT_HANDLE   = -10
+ =-0000000B			STD_OUTPUT_HANDLER = -11
+
+ 00000000			.data
+
+ 00000000 00000000		outputHandler dd 0
+ 00000004 00000000		inputHandler  dd 0
+ 00000008 00000000		fileHandler   dd 0
+
+ 0000000C 00000000		nWritten      dd 0
+ 00000010 00000000		nRead         dd 0
+ 00000014 00000000		bytesCount    dd 0
+ 00000018 00000000		bytesWritten  dd 0
+
+ 0000001C  00000080 [		fileBuffer    db BUFFER_SIZE DUP(?)
+	    00
+	   ]
+ 0000009C  00000080 [		consoleBuffer db BUFFER_SIZE DUP(?)
+	    00
+	   ]
+ 0000011C 6F 75 74 70 75	filename      db "output.txt", 0
+	   74 2E 74 78 74
+	   00
+
+ 00000000			.code
+
+				EXTERN stdHandle:PROC
+				EXTERN writeConsole:PROC
+				EXTERN readConsole:PROC
+				EXTERN createFile:PROC
+				EXTERN writeFile:PROC
+				EXTERN readFile:PROC
+				EXTERN closeHandle:PROC
+				EXTERN exitProcess:PROC
+
+ 00000000			masm PROC
+
+ 00000000  55			push ebp
+ 00000001  8B EC		mov  ebp, esp
+
+				; меняем дескриптор на вывод
+ 00000003  6A F5		push STD_OUTPUT_HANDLER
+ 00000005  E8 00000000 E	call stdHandle
+ 0000000A  A3 00000000 R	mov  outputHandler, eax
+
+				; создаем файл output.txt, если он не создан
+ 0000000F  6A 00		push 0
+ 00000011  68 00000080		push 80h
+ 00000016  6A 03		push 3
+ 00000018  6A 00		push 0
+ 0000001A  6A 02		push 2h
+ 0000001C  6A 03		push 3
+ 0000001E  68 0000011C R	push offset filename
+ 00000023  E8 00000000 E	call createFile
+ 00000028  A3 00000008 R	mov  fileHandler, eax
+
+				; читаем из файла
+ 0000002D  6A 00		push 0
+ 0000002F  68 00000014 R	push offset bytesCount
+ 00000034  68 00000080		push BUFFER_SIZE
+ 00000039  68 0000001C R	push offset fileBuffer
+ 0000003E  FF 35 00000008 R	push fileHandler
+ 00000044  E8 00000000 E	call readFile
+
+				; вывод файла в консоль
+ 00000049  6A 00		push 0
+ 0000004B  68 0000000C R	push offset nWritten
+ 00000050  FF 35 00000014 R	push bytesCount
+ 00000056  68 0000001C R	push offset fileBuffer
+ 0000005B  FF 35 00000000 R	push outputHandler
+ 00000061  E8 00000000 E	call writeConsole
+
+				; меняем дескриптор на считывание
+ 00000066  6A F6		push STD_INPUT_HANDLE
+ 00000068  E8 00000000 E	call stdHandle
+ 0000006D  A3 00000004 R	mov  inputHandler, eax
+
+				; получаем ввод с консоли
+ 00000072  6A 00		push 0
+ 00000074  68 00000010 R	push offset nRead
+ 00000079  68 00000080		push BUFFER_SIZE
+ 0000007E  68 0000009C R	push offset consoleBuffer
+ 00000083  FF 35 00000004 R	push inputHandler
+ 00000089  E8 00000000 E	call readConsole
+
+				; записываем в файл введеную строку
+ 0000008E  6A 00		push 0
+ 00000090  68 00000018 R	push offset bytesWritten
+ 00000095  FF 35 00000010 R	push nRead
+ 0000009B  68 0000009C R	push offset consoleBuffer
+ 000000A0  FF 35 00000008 R	push fileHandler
+ 000000A6  E8 00000000 E	call writeFile
+
+				; закрываем файл
+ 000000AB  FF 35 00000008 R	push fileHandler
+ 000000B1  E8 00000000 E	call closeHandle
+
+				; выходим из процедуры
+ 000000B6  6A 00		push 0
+ 000000B8  E8 00000000 E	call exitProcess
+
+ 000000BD  8B E5		mov  esp, ebp
+ 000000BF  5D			pop  ebp
+ 000000C0  C3			retn
+ 000000C1			masm ENDP
+
+				END
+				end Main
+Microsoft (R) Macro Assembler Version 14.28.29336.0	    05/21/21 03:07:13
+src.asm							     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000127 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000C1 Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+masm . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000C1 Public C
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000001h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+BUFFER_SIZE  . . . . . . . . . .	Number	 00000080h   
+STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah   
+STD_OUTPUT_HANDLER . . . . . . .	Number	 -0000000Bh   
+bytesCount . . . . . . . . . . .	DWord	 00000014 _DATA	
+bytesWritten . . . . . . . . . .	DWord	 00000018 _DATA	
+closeHandle  . . . . . . . . . .	L Near	 00000000 FLAT	External C
+consoleBuffer  . . . . . . . . .	Byte	 0000009C _DATA	
+createFile . . . . . . . . . . .	L Near	 00000000 FLAT	External C
+exitProcess  . . . . . . . . . .	L Near	 00000000 FLAT	External C
+fileBuffer . . . . . . . . . . .	Byte	 0000001C _DATA	
+fileHandler  . . . . . . . . . .	DWord	 00000008 _DATA	
+filename . . . . . . . . . . . .	Byte	 0000011C _DATA	
+inputHandler . . . . . . . . . .	DWord	 00000004 _DATA	
+nRead  . . . . . . . . . . . . .	DWord	 00000010 _DATA	
+nWritten . . . . . . . . . . . .	DWord	 0000000C _DATA	
+outputHandler  . . . . . . . . .	DWord	 00000000 _DATA	
+readConsole  . . . . . . . . . .	L Near	 00000000 FLAT	External C
+readFile . . . . . . . . . . . .	L Near	 00000000 FLAT	External C
+stdHandle  . . . . . . . . . . .	L Near	 00000000 FLAT	External C
+writeConsole . . . . . . . . . .	L Near	 00000000 FLAT	External C
+writeFile  . . . . . . . . . . .	L Near	 00000000 FLAT	External C
+
+	   0 Warnings
+	   0 Errors

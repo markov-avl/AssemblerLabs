@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AssemblerLab7.2.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
     <MASM Include="src.asm">
       <Filter>Исходные файлы</Filter>
     </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AssemblerLab7.1.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
