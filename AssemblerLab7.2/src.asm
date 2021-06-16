@@ -1,109 +1,118 @@
-PUBLIC masm
-
 .686
 .model flat, C
-option casemap : none
+option casemap: none
 
-BUFFER_SIZE        = 128
-STD_INPUT_HANDLE   = -10
-STD_OUTPUT_HANDLER = -11
+include C:\masm32\include\windows.inc
+include C:\masm32\include\kernel32.inc
+includelib kernel32.lib
+
+BUFFER_SIZE = 256
 
 .data
-
-outputHandler dd 0
-inputHandler  dd 0
-fileHandler   dd 0
-
-nWritten      dd 0
-nRead         dd 0
-bytesCount    dd 0
-bytesWritten  dd 0
-
-fileBuffer    db BUFFER_SIZE DUP(?)
-consoleBuffer db BUFFER_SIZE DUP(?)
-filename      db "output.txt", 0
+fileHandle   DWORD ?
+bytesWritten DWORD ?
+bytesRead    DWORD ?
+buffer       DWORD BUFFER_SIZE DUP (' '), 0
 
 .code
+FileIO Proc C filename: DWORD, text: DWORD, textLength: DWORD
 
-EXTERN stdHandle:PROC
-EXTERN writeConsole:PROC
-EXTERN readConsole:PROC
-EXTERN createFile:PROC
-EXTERN writeFile:PROC
-EXTERN readFile:PROC
-EXTERN closeHandle:PROC
-EXTERN exitProcess:PROC
+; запись
 
-masm PROC
+mov  eax, filename
 
-push ebp
-mov  ebp, esp
+; HANDLE CreateFileA(
+;   LPCSTR                lpFileName,
+;   DWORD                 dwDesiredAccess,
+;   DWORD                 dwShareMode,
+;   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+;   DWORD                 dwCreationDisposition,
+;   DWORD                 dwFlagsAndAttributes,
+;   HANDLE                hTemplateFile
+; )
+push NULL
+push FILE_ATTRIBUTE_NORMAL
+push OPEN_EXISTING
+push NULL
+push NULL
+push GENERIC_WRITE
+push eax
+call CreateFile
 
-; меняем дескриптор на вывод
-push STD_OUTPUT_HANDLER
-call stdHandle
-mov  outputHandler, eax
+mov  fileHandle, eax
 
-; создаем файл output.txt, если он не создан
-push 0
-push 80h
-push 3
-push 0
-push 2h
-push 3
-push offset filename
-call createFile
-mov  fileHandler, eax
+; DWORD SetFilePointer(
+;   HANDLE hFile,
+;   LONG   lDistanceToMove,
+;   PLONG  lpDistanceToMoveHigh,
+;   DWORD  dwMoveMethod
+; )
+push FILE_END
+push NULL
+push NULL
+push fileHandle
+call SetFilePointer
 
-; читаем из файла
-push 0
-push offset bytesCount
+mov  eax, text
+
+; BOOL WriteFile(
+;   HANDLE       hFile,
+;   LPCVOID      lpBuffer,
+;   DWORD        nNumberOfBytesToWrite,
+;   LPDWORD      lpNumberOfBytesWritten,
+;   LPOVERLAPPED lpOverlapped
+; )
+push NULL
+push OFFSET bytesWritten
+push textLength
+push eax
+push fileHandle
+call WriteFile
+
+; BOOL CloseHandle(
+;   HANDLE hObject
+; )
+push fileHandle
+call CloseHandle
+
+; чтение
+
+mov  eax, filename
+
+; то же самое, что и сверху, в части записи
+push NULL
+push FILE_ATTRIBUTE_NORMAL
+push OPEN_EXISTING
+push NULL
+push NULL
+push GENERIC_READ
+push eax
+call CreateFile
+
+mov  fileHandle, eax
+
+; BOOL ReadFile(
+;   HANDLE       hFile,
+;   LPVOID       lpBuffer,
+;   DWORD        nNumberOfBytesToRead,
+;   LPDWORD      lpNumberOfBytesRead,
+;   LPOVERLAPPED lpOverlapped
+; )
+push NULL
+push OFFSET bytesRead
 push BUFFER_SIZE
-push offset fileBuffer
-push fileHandler
-call readFile
+push OFFSET buffer
+push fileHandle
+call ReadFile
 
-; вывод файла в консоль
-push 0
-push offset nWritten
-push bytesCount
-push offset fileBuffer
-push outputHandler
-call writeConsole
+; то же самое, что и сверху, в части записи
+push fileHandle
+call CloseHandle
 
-; меняем дескриптор на считывание
-push STD_INPUT_HANDLE
-call stdHandle
-mov  inputHandler, eax
+; возвращаем данные
+mov  eax, OFFSET buffer
+RET
 
-; получаем ввод с консоли
-push 0
-push offset nRead
-push BUFFER_SIZE
-push offset consoleBuffer
-push inputHandler
-call readConsole
-
-; записываем в файл введеную строку
-push 0
-push offset bytesWritten
-push nRead
-push offset consoleBuffer
-push fileHandler
-call writeFile
-
-; закрываем файл
-push fileHandler
-call closeHandle
-
-; выходим из процедуры
-push 0
-call exitProcess
-
-mov  esp, ebp
-pop  ebp
-retn
-masm ENDP
+FileIO EndP
 
 END
-end Main

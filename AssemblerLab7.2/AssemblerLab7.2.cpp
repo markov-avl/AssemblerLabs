@@ -1,119 +1,21 @@
-﻿#include <windows.h>
+﻿#include <stdio.h>
+#include <conio.h>
 #include <iostream>
 
+// ЧТЕНИЕ И ДОБАВЛЕНИЕ В ФАЙЛ
 
-extern "C" void masm();
+constexpr int BUFFER_SIZE = 256;
 
-extern "C" void* stdHandle(
-	DWORD handler
-) {
-	return GetStdHandle(
-		handler
-	);
-}
-
-extern "C" BOOL readConsole(
-	HANDLE                       hConsoleInput,
-	LPVOID                       lpBuffer,
-	DWORD                        nNumberOfCharsToRead,
-	LPDWORD                      lpNumberOfCharsRead,
-	PCONSOLE_READCONSOLE_CONTROL pInputControl
-) {
-	return ReadConsole(
-		hConsoleInput,
-		lpBuffer,
-		nNumberOfCharsToRead,
-		lpNumberOfCharsRead,
-		pInputControl
-	);
-}
-
-extern "C" HANDLE createFile(
-	LPCSTR                lpFileName,
-	DWORD                 dwDesiredAccess,
-	DWORD                 dwShareMode,
-	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-	DWORD                 dwCreationDisposition,
-	DWORD                 dwFlagsAndAttributes,
-	HANDLE                hTemplateFile
-) {
-	return CreateFileA(
-		lpFileName,
-		dwDesiredAccess,
-		dwShareMode,
-		lpSecurityAttributes,
-		dwCreationDisposition,
-		dwFlagsAndAttributes,
-		hTemplateFile
-	);
-}
-
-extern "C" BOOL writeFile(
-	HANDLE       hFile,
-	LPCVOID      lpBuffer,
-	DWORD        nNumberOfBytesToWrite,
-	LPDWORD      lpNumberOfBytesWritten,
-	LPOVERLAPPED lpOverlapped
-) {
-	return WriteFile(
-		hFile,
-		lpBuffer,
-		nNumberOfBytesToWrite * 2,
-		lpNumberOfBytesWritten,
-		lpOverlapped
-	);
-}
-
-extern "C" BOOL closeHandle(
-	HANDLE hObject
-) {
-	return CloseHandle(
-		hObject
-	);
-}
-
-extern "C" VOID exitProcess(
-	UINT resp
-) {
-	return ExitProcess(
-		resp
-	);
-}
-
-extern "C" BOOL writeConsole(
-	HANDLE      hConsoleOutput,
-	CONST VOID* lpBuffer,
-	DWORD       nNumberOfCharsToWrite,
-	LPDWORD     lpNumberOfCharsWritten,
-	LPVOID      lpReserved
-) {
-	return WriteConsole(
-		hConsoleOutput,
-		lpBuffer,
-		nNumberOfCharsToWrite * 2,
-		lpNumberOfCharsWritten,
-		lpReserved
-	);
-}
-
-extern "C" BOOL readFile(
-	HANDLE       hFile,
-	LPVOID       lpBuffer,
-	DWORD        nNumberOfBytesToRead,
-	LPDWORD      lpNumberOfBytesRead,
-	LPOVERLAPPED lpOverlapped
-) {
-	return ReadFile(
-		hFile,
-		lpBuffer,
-		nNumberOfBytesToRead,
-		lpNumberOfBytesRead,
-		lpOverlapped
-	);
-}
+extern "C" char* FileIO(char* filename, char* text, int textLength);
 
 
 int main() {
-	masm();
+	char filename[] = "output.txt";
+	char text[BUFFER_SIZE]{};
+
+	std::cout << "Input the text:" << std::endl;
+	std::cin.getline(text, BUFFER_SIZE);
+	std::cout << FileIO(filename, text, strlen(text));
+
 	return 0;
 }
