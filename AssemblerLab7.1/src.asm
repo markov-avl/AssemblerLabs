@@ -12,10 +12,10 @@ BUFFER_SIZE = 256
 fileHandle   DWORD ?
 bytesWritten DWORD ?
 bytesRead    DWORD ?
-buffer       DWORD BUFFER_SIZE DUP (' '), 0
+buffer       DWORD BUFFER_SIZE dup (' '), 0
 
 .code
-FileInput Proc C filename: DWORD, text: DWORD, textLength: DWORD
+FileInput proc C filename: DWORD, text: DWORD, textLength: DWORD
 
 mov  eax, filename
 
@@ -61,7 +61,7 @@ mov  eax, text
 ;   LPOVERLAPPED lpOverlapped
 ; )
 push NULL
-push OFFSET bytesWritten
+push offset bytesWritten
 push textLength
 push eax
 push fileHandle
@@ -73,8 +73,8 @@ call WriteFile
 push fileHandle
 call CloseHandle
 
-RET
+ret
 
-FileInput EndP
+FileInput endp
 
-END
+end
