@@ -17,8 +17,6 @@ buffer       DWORD BUFFER_SIZE dup (' '), 0
 .code
 FileInput proc C filename: DWORD, text: DWORD, textLength: DWORD
 
-mov  eax, filename
-
 ; HANDLE CreateFileA(
 ;   LPCSTR                lpFileName,
 ;   DWORD                 dwDesiredAccess,
@@ -34,7 +32,7 @@ push CREATE_ALWAYS
 push NULL
 push NULL
 push GENERIC_WRITE
-push eax
+push filename
 call CreateFile
 
 mov  fileHandle, eax
@@ -63,7 +61,7 @@ mov  eax, text
 push NULL
 push offset bytesWritten
 push textLength
-push eax
+push text
 push fileHandle
 call WriteFile
 

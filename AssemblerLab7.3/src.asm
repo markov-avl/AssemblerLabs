@@ -6,7 +6,7 @@ include C:\masm32\include\windows.inc
 include C:\masm32\include\kernel32.inc
 includelib kernel32.lib
 
-BUFFER_SIZE = 4096
+BUFFER_SIZE = 512
 
 .data
 fileHandle   DWORD ?
@@ -16,9 +16,7 @@ buffer       DWORD BUFFER_SIZE dup (' '), 0
 
 .code
 
-DiskReading proc C diskname: DWORD, shift: DWORD
-
-mov eax, diskname
+DiskReading proc C filename: DWORD, text: DWORD, textLength: DWORD, diskname: DWORD, shift: DWORD
 
 push NULL
 push FILE_ATTRIBUTE_NORMAL
@@ -26,7 +24,7 @@ push OPEN_EXISTING
 push NULL
 push FILE_SHARE_READ + FILE_SHARE_WRITE
 push GENERIC_READ
-push eax
+push diskname
 call CreateFile
 
 mov  fileHandle, eax
@@ -47,7 +45,56 @@ call ReadFile
 push fileHandle
 call CloseHandle
 
-mov eax, offset buffer
+; HANDLE CreateFileA(
+;   LPCSTR                lpFileName,
+;   DWORD                 dwDesiredAccess,
+;   DWORD                 dwShareMode,
+;   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+;   DWORD                 dwCreationDisposition,
+;   DWORD                 dwFlagsAndAttributes,
+;   HANDLE                hTemplateFile
+; )
+push NULL
+push FILE_ATTRIBUTE_NORMAL
+push CREATE_ALWAYS
+push NULL
+push NULL
+push GENERIC_WRITE
+push filename
+call CreateFile
+
+mov  fileHandle, eax
+
+; DWORD SetFilePointer(
+;   HANDLE hFile,
+;   LONG   lDistanceToMove,
+;   PLONG  lpDistanceToMoveHigh,
+;   DWORD  dwMoveMethod
+; )
+push FILE_END
+push NULL
+push NULL
+push fileHandle
+call SetFilePointer
+
+; BOOL WriteFile(
+;   HANDLE       hFile,
+;   LPCVOID      lpBuffer,
+;   DWORD        nNumberOfBytesToWrite,
+;   LPDWORD      lpNumberOfBytesWritten,
+;   LPOVERLAPPED lpOverlapped
+; )
+push NULL
+push offset bytesWritten
+push textLength
+push text
+push fileHandle
+call WriteFile
+
+push fileHandle
+call CloseHandle
+
+mov  eax, offset buffer
 ret
 
 DiskReading endp

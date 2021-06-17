@@ -19,8 +19,6 @@ FileIO proc C filename: DWORD, text: DWORD, textLength: DWORD
 
 ; запись
 
-mov  eax, filename
-
 ; HANDLE CreateFileA(
 ;   LPCSTR                lpFileName,
 ;   DWORD                 dwDesiredAccess,
@@ -36,7 +34,7 @@ push OPEN_EXISTING
 push NULL
 push NULL
 push GENERIC_WRITE
-push eax
+push filename
 call CreateFile
 
 mov  fileHandle, eax
@@ -53,8 +51,6 @@ push NULL
 push fileHandle
 call SetFilePointer
 
-mov  eax, text
-
 ; BOOL WriteFile(
 ;   HANDLE       hFile,
 ;   LPCVOID      lpBuffer,
@@ -65,7 +61,7 @@ mov  eax, text
 push NULL
 push offset bytesWritten
 push textLength
-push eax
+push text
 push fileHandle
 call WriteFile
 
@@ -77,8 +73,6 @@ call CloseHandle
 
 ; чтение
 
-mov  eax, filename
-
 ; то же самое, что и сверху, в части записи
 push NULL
 push FILE_ATTRIBUTE_NORMAL
@@ -86,7 +80,7 @@ push OPEN_EXISTING
 push NULL
 push NULL
 push GENERIC_READ
-push eax
+push filename
 call CreateFile
 
 mov  fileHandle, eax
