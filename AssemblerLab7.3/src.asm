@@ -12,14 +12,14 @@ BUFFER_SIZE = 512
 fileHandle   DWORD ?
 bytesWritten DWORD ?
 bytesRead    DWORD ?
-buffer       DWORD BUFFER_SIZE dup (' '), 0
+buffer       DWORD BUFFER_SIZE dup (?), 0
 
 .code
 
-DiskReading proc C filename: DWORD, text: DWORD, textLength: DWORD, diskname: DWORD, shift: DWORD
+DiskReading proc C filename: DWORD, diskname: DWORD, shift: DWORD
 
 push NULL
-push FILE_ATTRIBUTE_NORMAL
+push NULL
 push OPEN_EXISTING
 push NULL
 push FILE_SHARE_READ + FILE_SHARE_WRITE
@@ -45,15 +45,8 @@ call ReadFile
 push fileHandle
 call CloseHandle
 
-; HANDLE CreateFileA(
-;   LPCSTR                lpFileName,
-;   DWORD                 dwDesiredAccess,
-;   DWORD                 dwShareMode,
-;   LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-;   DWORD                 dwCreationDisposition,
-;   DWORD                 dwFlagsAndAttributes,
-;   HANDLE                hTemplateFile
-; )
+; запись в файл
+
 push NULL
 push FILE_ATTRIBUTE_NORMAL
 push CREATE_ALWAYS
@@ -65,29 +58,16 @@ call CreateFile
 
 mov  fileHandle, eax
 
-; DWORD SetFilePointer(
-;   HANDLE hFile,
-;   LONG   lDistanceToMove,
-;   PLONG  lpDistanceToMoveHigh,
-;   DWORD  dwMoveMethod
-; )
 push FILE_END
 push NULL
 push NULL
 push fileHandle
 call SetFilePointer
 
-; BOOL WriteFile(
-;   HANDLE       hFile,
-;   LPCVOID      lpBuffer,
-;   DWORD        nNumberOfBytesToWrite,
-;   LPDWORD      lpNumberOfBytesWritten,
-;   LPOVERLAPPED lpOverlapped
-; )
 push NULL
 push offset bytesWritten
-push textLength
-push text
+push BUFFER_SIZE
+push offset buffer
 push fileHandle
 call WriteFile
 

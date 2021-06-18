@@ -12,7 +12,7 @@ BUFFER_SIZE = 256
 fileHandle   DWORD ?
 bytesWritten DWORD ?
 bytesRead    DWORD ?
-buffer       DWORD BUFFER_SIZE dup (' '), 0
+buffer       DWORD BUFFER_SIZE dup (?), 0
 
 .code
 FileInput proc C filename: DWORD, text: DWORD, textLength: DWORD
